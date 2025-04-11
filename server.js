@@ -3,24 +3,26 @@ const axios = require('axios');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-
-// 외부에서 불러올 자동 스크립트 URL
 const externalScriptURL = 'https://raw.githubusercontent.com/SuperHackz/blooket-cheats/refs/heads/main/gui.min.js';
 
 app.get('*', async (req, res) => {
   try {
     const targetUrl = 'https://play.blooket.com' + req.originalUrl;
+
     const response = await axios.get(targetUrl, {
       headers: {
-        'User-Agent': req.headers['user-agent'],
+        'User-Agent': req.headers['user-agent'] || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://play.blooket.com/',
+        'Cookie': req.headers['cookie'] || '',
       }
     });
 
-    // <script> 태그로 외부 스크립트 자동 삽입
-    const injectedScript = `
-      <script src="${externalScriptURL}"></script>
-    `;
+    // 자동 삽입될 스크립트
+    const injectedScript = `<script src="${externalScriptURL}"></script>`;
 
+    // HTML에 삽입
     const modifiedHTML = response.data.replace('</body>', `${injectedScript}</body>`);
 
     res.send(modifiedHTML);
